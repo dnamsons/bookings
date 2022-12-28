@@ -7,6 +7,7 @@
     "bootstrap-icons": "^1.10.3",
     "esbuild": "^0.16.12",
     "react": "^18.2.0",
+    "react-calendar": "^4.0.0",
     "react-dom": "^18.2.0",
     "sass": "^1.57.1"
   },
@@ -17,6 +18,7 @@
   "devDependencies": {
     "@types/bootstrap": "^5.2.6",
     "@types/react": "^18.0.26",
+    "@types/react-calendar": "^3.9.0",
     "@types/react-dom": "^18.0.10"
   }
 }
