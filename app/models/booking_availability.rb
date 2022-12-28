@@ -10,7 +10,7 @@ class BookingAvailability
 
   def days
     date_range.map do |date|
-      { date: date, available_times: [{ start: date.beginning_of_day, end: date.end_of_day }] }
+      { date: date, available_times: [{ start: date.in_time_zone, end: date.in_time_zone.end_of_day }] }
     end
   end
 end

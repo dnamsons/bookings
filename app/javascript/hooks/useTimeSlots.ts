@@ -37,7 +37,9 @@ const timeSlotsFromInterval = (
     })
   }
 
-  if (slotEnd.isBefore(end)) {
+  // Ensure that there is some time remaining after adding the slot
+  // and that we haven't crossed midnight
+  if (slotEnd.isBefore(end) && slotEnd.date() === start.date()) {
     return timeSlots.concat(
       timeSlotsFromInterval(
         {
@@ -52,6 +54,12 @@ const timeSlotsFromInterval = (
   }
 }
 
+const isBeginningOfDay = (interval: string) =>
+  dayjs(interval).isSame(dayjs(interval).startOf('date'))
+
+const isEndOfDay = (interval: string) =>
+  dayjs(interval).isSame(dayjs(interval).endOf('date'))
+
 const calculateTimeSlots = (
   availableIntervalsByDate: AvailableTimeSlotDateMap,
   timeSlotDuration: string
@@ -63,12 +71,26 @@ const calculateTimeSlots = (
   timeSlotDurationMinutes += timeSlotDurationHours * 60
 
   const intervalEntries = Object.entries(availableIntervalsByDate)
-  const slotsByDateEntries = intervalEntries.map(([date, intervals]) => {
+  const slotsByDateEntries = intervalEntries.map(([date, intervals], index) => {
     let slotsForDate: AvailableTimeSlot[] = []
 
     intervals.forEach((interval) => {
+      let intervalEnd = interval.end
+
+      // If the interval ends at the end of current date(i.e. 23:59:59)
+      // And the first interval of the next date starts at the beginning of the date(i.e. 00:00:00)
+      // We may be able to book a time slot that crosses midnight
+      if (isEndOfDay(intervalEnd) && !!intervalEntries[index + 1]) {
+        const [_date, nextDateIntervals] = intervalEntries[index + 1]
+        const [firstIntervalForNextDate, _] = nextDateIntervals
+
+        if (!!interval && isBeginningOfDay(firstIntervalForNextDate.start)) {
+          intervalEnd = firstIntervalForNextDate.end
+        }
+      }
+
       const start = dayjs(interval.start)
-      const end = dayjs(interval.end)
+      const end = dayjs(intervalEnd)
 
       slotsForDate = slotsForDate.concat(
         timeSlotsFromInterval({ start, end }, timeSlotDurationMinutes)
@@ -79,6 +101,8 @@ const calculateTimeSlots = (
 
   return Object.fromEntries(slotsByDateEntries)
 }
+
+const TIMEZONE = Intl.DateTimeFormat().resolvedOptions().timeZone
 
 export const useTimeSlots = (
   rangeStartDate: Date,
@@ -97,7 +121,7 @@ export const useTimeSlots = (
     const endDate = dayjs(rangeStartDate).endOf('month').format('DD-MM-YYYY')
 
     fetch(
-      `/api/booking_availabilities?start_date=${startDate}&end_date=${endDate}`
+      `/api/booking_availabilities?start_date=${startDate}&end_date=${endDate}&timezone=${TIMEZONE}`
     )
       .then((res) => res.json() as Promise<BookingAvailabilitiesResponse>)
       .then(({ days }) => {
