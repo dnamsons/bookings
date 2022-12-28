@@ -1,3 +1,4 @@
+import * as bootstrap from 'bootstrap'
 import { createElement } from 'react'
 import { createRoot } from 'react-dom/client'
 import BookingPage from './BookingPage'
