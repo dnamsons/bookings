@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import Calendar from 'react-calendar'
 import dayjs from 'dayjs'
 import { useTimeSlots } from './hooks/useTimeSlots'
@@ -10,9 +10,31 @@ const BookingPage: React.FC = () => {
 
   const { availableTimeSlots } = useTimeSlots(rangeStartDate, duration)
 
+  const timeSlotsForDate = useMemo(() => {
+    if (!date) {
+      return []
+    }
+
+    const dateKey = dayjs(date).format('YYYY-MM-DD')
+
+    return availableTimeSlots[dateKey]
+  }, [date, availableTimeSlots])
+
+  console.log(timeSlotsForDate)
+
   useEffect(() => {
     console.debug('`availableTimeSlots` changed', availableTimeSlots)
   }, [availableTimeSlots])
+
+  const onChangeMonth = (startDate: Date) => {
+    setDate(undefined)
+
+    if (startDate.getMonth() === new Date().getMonth()) {
+      setRangeStartDate(new Date())
+    } else {
+      setRangeStartDate(startDate)
+    }
+  }
 
   return (
     <div>
@@ -37,10 +59,17 @@ const BookingPage: React.FC = () => {
           showNeighboringMonth={false}
           onClickDay={(value, _) => setDate(value)}
           onActiveStartDateChange={({ activeStartDate }) =>
-            setRangeStartDate(activeStartDate)
+            onChangeMonth(activeStartDate)
           }
+          prev2Label={null}
+          next2Label={null}
           value={date}
         />
+
+        {date &&
+          timeSlotsForDate.map(({ start }) => (
+            <div key={start}>{dayjs(start).format('HH:mm')}</div>
+          ))}
       </div>
     </div>
   )

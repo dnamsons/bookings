@@ -17,7 +17,73 @@ interface BookingAvailabilitiesResponse {
   days: BookingAvailabilitiesDay[]
 }
 
-export const useTimeSlots = (rangeStartDate: Date, duration: string) => {
+interface DayjsInterval {
+  start: dayjs.Dayjs
+  end: dayjs.Dayjs
+}
+
+const timeSlotsFromInterval = (
+  { start, end }: DayjsInterval,
+  durationMinutes: number
+): AvailableTimeSlot[] => {
+  const slotEnd = start.add(durationMinutes, 'minutes')
+
+  let timeSlots = []
+
+  if (slotEnd.isBefore(end) || slotEnd.isSame(end)) {
+    timeSlots.push({
+      start: start.toISOString(),
+      end: slotEnd.toISOString()
+    })
+  }
+
+  if (slotEnd.isBefore(end)) {
+    return timeSlots.concat(
+      timeSlotsFromInterval(
+        {
+          start: slotEnd,
+          end
+        },
+        durationMinutes
+      )
+    )
+  } else {
+    return timeSlots
+  }
+}
+
+const calculateTimeSlots = (
+  availableIntervalsByDate: AvailableTimeSlotDateMap,
+  timeSlotDuration: string
+): AvailableTimeSlotDateMap => {
+  let [timeSlotDurationHours, timeSlotDurationMinutes] = timeSlotDuration
+    .split(':')
+    .map(Number)
+
+  timeSlotDurationMinutes += timeSlotDurationHours * 60
+
+  const intervalEntries = Object.entries(availableIntervalsByDate)
+  const slotsByDateEntries = intervalEntries.map(([date, intervals]) => {
+    let slotsForDate: AvailableTimeSlot[] = []
+
+    intervals.forEach((interval) => {
+      const start = dayjs(interval.start)
+      const end = dayjs(interval.end)
+
+      slotsForDate = slotsForDate.concat(
+        timeSlotsFromInterval({ start, end }, timeSlotDurationMinutes)
+      )
+    })
+    return [date, slotsForDate]
+  })
+
+  return Object.fromEntries(slotsByDateEntries)
+}
+
+export const useTimeSlots = (
+  rangeStartDate: Date,
+  requiredTimeSlotDuration: string
+) => {
   const [availableTimeIntervals, setAvailableTimeIntervals] =
     useState<AvailableTimeSlotDateMap>({})
 
@@ -45,7 +111,14 @@ export const useTimeSlots = (rangeStartDate: Date, duration: string) => {
 
   useEffect(() => {
     console.debug('`availableTimeIntervals` changed', availableTimeIntervals)
-  }, [availableTimeIntervals])
+
+    const timeSlots = calculateTimeSlots(
+      availableTimeIntervals,
+      requiredTimeSlotDuration
+    )
+
+    setAvailableTimeSlots(timeSlots)
+  }, [availableTimeIntervals, requiredTimeSlotDuration])
 
   return { availableTimeSlots }
 }
