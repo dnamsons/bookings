@@ -116,6 +116,8 @@ const calculateTimeSlots = (
   return Object.fromEntries(slotsByDateEntries)
 }
 
+const TIMEZONE = Intl.DateTimeFormat().resolvedOptions().timeZone
+
 export const useTimeSlots = (
   rangeStartDate: Date,
   requiredTimeSlotDuration: string
@@ -133,7 +135,7 @@ export const useTimeSlots = (
     const endDate = dayjs(rangeStartDate).endOf('month').format('DD-MM-YYYY')
 
     fetch(
-      `/api/booking_availabilities?start_date=${startDate}&end_date=${endDate}`
+      `/api/booking_availabilities?start_date=${startDate}&end_date=${endDate}&timezone=${TIMEZONE}`
     )
       .then((res) => res.json() as Promise<BookingAvailabilitiesResponse>)
       .then(({ days }) => {
