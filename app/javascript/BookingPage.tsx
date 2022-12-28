@@ -3,6 +3,8 @@ import Calendar from 'react-calendar'
 import dayjs from 'dayjs'
 import { useTimeSlots } from './hooks/useTimeSlots'
 
+const dateToKey = (date: Date) => dayjs(date).format('YYYY-MM-DD')
+
 const BookingPage: React.FC = () => {
   const [rangeStartDate, setRangeStartDate] = useState<Date>(new Date())
   const [duration, setDuration] = useState<string>('00:15')
@@ -15,7 +17,7 @@ const BookingPage: React.FC = () => {
       return []
     }
 
-    const dateKey = dayjs(date).format('YYYY-MM-DD')
+    const dateKey = dateToKey(date)
 
     return availableTimeSlots[dateKey]
   }, [date, availableTimeSlots])
@@ -61,6 +63,13 @@ const BookingPage: React.FC = () => {
           onActiveStartDateChange={({ activeStartDate }) =>
             onChangeMonth(activeStartDate)
           }
+          tileDisabled={({ date }) => {
+            const dateKey = dateToKey(date)
+
+            const timeSlotsForDate = availableTimeSlots[dateKey]
+
+            return !timeSlotsForDate || timeSlotsForDate.length === 0
+          }}
           prev2Label={null}
           next2Label={null}
           value={date}
