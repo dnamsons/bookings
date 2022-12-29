@@ -86,6 +86,11 @@ const calculateTimeSlots = (
 
   const intervalEntries = Object.entries(availableIntervalsByDate)
   const slotsByDateEntries = intervalEntries.map(([date, intervals], index) => {
+    // Last entry is the first date of the next month
+    if (index === intervalEntries.length - 1) {
+      return [date, []]
+    }
+
     let slotsForDate: AvailableTimeSlot[] = []
 
     intervals.forEach((interval) => {
@@ -132,7 +137,10 @@ export const useTimeSlots = (
     console.debug('`rangeStartDate` changed', rangeStartDate)
 
     const startDate = dayjs(rangeStartDate).format('DD-MM-YYYY')
-    const endDate = dayjs(rangeStartDate).endOf('month').format('DD-MM-YYYY')
+    const endDate = dayjs(rangeStartDate)
+      .endOf('month')
+      .add(1, 'day')
+      .format('DD-MM-YYYY')
 
     fetch(
       `/api/booking_availabilities?start_date=${startDate}&end_date=${endDate}&timezone=${TIMEZONE}`
