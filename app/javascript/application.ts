@@ -1,12 +1,20 @@
 import * as bootstrap from 'bootstrap'
+import axios from 'axios'
 import { createElement } from 'react'
 import { createRoot } from 'react-dom/client'
 import BookingPage from './BookingPage'
 
-const domContainer = document.getElementById('booking-container')
+document.addEventListener('DOMContentLoaded', () => {
+  const metaTag = document.querySelector(`meta[name='csrf-token']`)
+  const crsfToken = metaTag ? metaTag.getAttribute('content') : null
 
-if (domContainer) {
-  const root = createRoot(domContainer)
+  axios.defaults.headers.common['X-CSRF-Token'] = crsfToken
 
-  root.render(createElement(BookingPage))
-}
+  const domContainer = document.getElementById('booking-container')
+
+  if (domContainer) {
+    const root = createRoot(domContainer)
+
+    root.render(createElement(BookingPage))
+  }
+})

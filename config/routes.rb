@@ -3,5 +3,6 @@ Rails.application.routes.draw do
 
   namespace :api do
     resource :booking_availabilities, only: :show
+    resource :bookings, only: :create
   end
 end

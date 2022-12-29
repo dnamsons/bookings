@@ -3,7 +3,7 @@ import dayjs from 'dayjs'
 
 type AvailableTimeSlotDateMap = Record<string, AvailableTimeSlot[]>
 
-interface AvailableTimeSlot {
+export interface AvailableTimeSlot {
   start: string
   end: string
 }
