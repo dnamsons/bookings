@@ -3,6 +3,10 @@ import axios from 'axios'
 import { createElement } from 'react'
 import { createRoot } from 'react-dom/client'
 import BookingPage from './BookingPage'
+import dayjs from 'dayjs'
+import localizedFormat from 'dayjs/plugin/localizedFormat'
+
+dayjs.extend(localizedFormat)
 
 document.addEventListener('DOMContentLoaded', () => {
   const metaTag = document.querySelector(`meta[name='csrf-token']`)

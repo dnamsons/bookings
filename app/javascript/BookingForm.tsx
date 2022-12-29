@@ -1,9 +1,10 @@
-import React, { useEffect, useMemo, useState } from 'react'
-import Calendar from 'react-calendar'
-import dayjs from 'dayjs'
-import { AvailableTimeSlot, useTimeSlots } from './hooks/useTimeSlots'
-
-const dateToKey = (date: Date) => dayjs(date).format('YYYY-MM-DD')
+import React, { useMemo, useState } from 'react'
+import { useTimeSlots } from './hooks/useTimeSlots'
+import { AvailableTimeSlot } from './types'
+import TimeSlotDurationCard from './components/TimeSlotDurationCard'
+import TimeSlotsCard from './components/TimeSlotsCard'
+import Calendar from './components/Calendar'
+import { dateToKey } from './utils'
 
 interface BookingFormProps {
   onConfirmReservation: (timeSlot: AvailableTimeSlot) => void
@@ -12,9 +13,9 @@ interface BookingFormProps {
 const BookingForm: React.FC<BookingFormProps> = ({ onConfirmReservation }) => {
   const [rangeStartDate, setRangeStartDate] = useState<Date>(new Date())
   const [duration, setDuration] = useState<string>('00:15')
-  const [date, setDate] = useState<Date>()
+  const [date, setDate] = useState<Date | null>(new Date())
 
-  const { availableTimeSlots } = useTimeSlots(rangeStartDate, duration)
+  const { availableTimeSlots, loading } = useTimeSlots(rangeStartDate, duration)
 
   const timeSlotsForDate = useMemo(() => {
     if (!date) {
@@ -23,17 +24,11 @@ const BookingForm: React.FC<BookingFormProps> = ({ onConfirmReservation }) => {
 
     const dateKey = dateToKey(date)
 
-    return availableTimeSlots[dateKey]
+    return availableTimeSlots[dateKey] || []
   }, [date, availableTimeSlots])
 
-  console.log(timeSlotsForDate)
-
-  useEffect(() => {
-    console.debug('`availableTimeSlots` changed', availableTimeSlots)
-  }, [availableTimeSlots])
-
   const onChangeMonth = (startDate: Date) => {
-    setDate(undefined)
+    setDate(null)
 
     if (startDate.getMonth() === new Date().getMonth()) {
       setRangeStartDate(new Date())
@@ -46,51 +41,31 @@ const BookingForm: React.FC<BookingFormProps> = ({ onConfirmReservation }) => {
     <div className='h-100 w-100 d-block text-center'>
       <h1>Book time for warehouse access</h1>
 
-      <div className='row'>
-        <div className='col-8'>
-          <div className='date_picker_container'>
+      <div className='booking_form'>
+        <div className='row'>
+          <div className='col-8'>
             <Calendar
-              minDetail='month'
-              minDate={new Date()}
-              showNeighboringMonth={false}
-              onClickDay={(value, _) => setDate(value)}
-              onActiveStartDateChange={({ activeStartDate }) =>
-                onChangeMonth(activeStartDate)
-              }
-              tileDisabled={({ date }) => {
-                const dateKey = dateToKey(date)
-
-                const timeSlotsForDate = availableTimeSlots[dateKey]
-
-                return !timeSlotsForDate || timeSlotsForDate.length === 0
-              }}
-              prev2Label={null}
-              next2Label={null}
-              value={date}
+              date={date}
+              loading={loading}
+              onChangeMonth={onChangeMonth}
+              onSelectDate={setDate}
+              availableTimeSlots={availableTimeSlots}
             />
           </div>
-        </div>
 
-        <div className='col'>
-          <h2>Choose the time duration</h2>
+          <div className='col right_side_container'>
+            <TimeSlotDurationCard
+              duration={duration}
+              setDuration={setDuration}
+            />
 
-          <input
-            type='time'
-            value={duration}
-            onChange={({ target: { value } }) => setDuration(value)}
-          />
-
-          <div className='time_slot_picker'>
-            {date &&
-              timeSlotsForDate.map((timeSlot) => (
-                <button
-                  className='time_slot'
-                  key={timeSlot.start}
-                  onClick={() => onConfirmReservation(timeSlot)}
-                >
-                  {dayjs(timeSlot.start).format('HH:mm')}
-                </button>
-              ))}
+            {date && (
+              <TimeSlotsCard
+                date={date}
+                timeSlots={timeSlotsForDate}
+                onConfirmReservation={onConfirmReservation}
+              />
+            )}
           </div>
         </div>
       </div>

@@ -1,0 +1,13 @@
+.time_input {
+  input {
+    border: none;
+  }
+
+  input:focus {
+    outline: none;
+  }
+
+  width: 80px;
+  border: #9096a2 1px solid;
+  border-radius: 5px;
+}

@@ -1,0 +1,51 @@
+@use 'utils';
+
+@import 'react_calendar';
+@import 'time_input';
+
+.booking_form {
+  padding-top: 3rem;
+  padding-left: 5rem;
+  padding-right: 5rem;
+}
+
+.time_slot_duration {
+  @include utils.card;
+
+  padding-bottom: 1rem;
+}
+
+.time_slot_duration__field_container {
+  display: flex;
+  justify-content: center;
+}
+
+.time_slots {
+  @include utils.card;
+
+  height: 470px;
+  margin-top: 1rem;
+}
+
+.time_slots__list {
+  display: flex;
+  flex-flow: column;
+  overflow-y: scroll;
+  max-height: 90%;
+}
+
+.time_slots__slot {
+  margin: auto;
+  background: #e7ecf4;
+  color: #486ad0;
+  border: none;
+  border-radius: 10px;
+  width: 10rem;
+  height: 2rem;
+  margin-top: 5px;
+  margin-bottom: 5px;
+
+  &:hover {
+    background: #b6caec;
+  }
+}

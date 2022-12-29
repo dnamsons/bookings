@@ -1,12 +1,6 @@
 import { useEffect, useState } from 'react'
 import dayjs from 'dayjs'
-
-type AvailableTimeSlotDateMap = Record<string, AvailableTimeSlot[]>
-
-export interface AvailableTimeSlot {
-  start: string
-  end: string
-}
+import { AvailableTimeSlot, AvailableTimeSlotDateMap } from '../types'
 
 interface BookingAvailabilitiesDay {
   date: string
@@ -133,7 +127,10 @@ export const useTimeSlots = (
   const [availableTimeSlots, setAvailableTimeSlots] =
     useState<AvailableTimeSlotDateMap>({})
 
+  const [loading, setLoading] = useState(false)
+
   useEffect(() => {
+    setLoading(true)
     console.debug('`rangeStartDate` changed', rangeStartDate)
 
     const startDate = dayjs(rangeStartDate).format('DD-MM-YYYY')
@@ -152,6 +149,7 @@ export const useTimeSlots = (
         )
 
         setAvailableTimeIntervals(timeIntervals)
+        setLoading(false)
       })
   }, [rangeStartDate])
 
@@ -166,5 +164,5 @@ export const useTimeSlots = (
     setAvailableTimeSlots(timeSlots)
   }, [availableTimeIntervals, requiredTimeSlotDuration])
 
-  return { availableTimeSlots }
+  return { availableTimeSlots, loading }
 }
