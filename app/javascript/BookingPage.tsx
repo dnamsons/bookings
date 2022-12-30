@@ -1,27 +1,16 @@
 import React, { useState } from 'react'
 import axios, { AxiosError, isAxiosError } from 'axios'
 import toast, { Toaster } from 'react-hot-toast'
-import BookingForm from './BookingForm'
+import BookingForm from './components/BookingForm'
+import BookingConfirmationCard from './components/BookingConfirmationCard'
 import { TimeInterval } from './types'
 import { TIMEZONE } from './utils'
-
-const BookingConfirmation: React.FC<{ bookingId: string }> = ({
-  bookingId
-}) => {
-  return (
-    <div>
-      <div className='alert alert-success' role='alert'>
-        Booked successfully!
-      </div>
-    </div>
-  )
-}
 
 type CreateBookingResponse = { id: string }
 type CreateBookingErrorResponse = { errors: string[] }
 
 const BookingPage: React.FC = () => {
-  const [bookingId, setBookingId] = useState<string>()
+  const [bookingId, setBookingId] = useState<string | null>()
 
   const onConfirmReservation = (timeSlot: TimeInterval) => {
     axios
@@ -47,7 +36,7 @@ const BookingPage: React.FC = () => {
   return (
     <>
       {bookingId ? (
-        <BookingConfirmation bookingId={bookingId} />
+        <BookingConfirmationCard onClose={() => setBookingId(null)} />
       ) : (
         <BookingForm onConfirmReservation={onConfirmReservation} />
       )}

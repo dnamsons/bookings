@@ -1,0 +1,45 @@
+@use 'utils';
+
+.booking_confirmation {
+  height: 100vh;
+  padding-top: 5rem;
+  padding-left: 10rem;
+  padding-right: 10rem;
+  padding-bottom: 5rem;
+}
+
+.booking_confirmation__card {
+  @include utils.card;
+
+  height: 80%;
+  display: flex;
+  flex-flow: column;
+}
+
+.booking_confirmation__card_button_row {
+  margin-top: 1rem;
+  margin-left: 1rem;
+}
+
+.booking_confirmation__title_row {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.booking_confirmation__back {
+  font-size: 2rem;
+  cursor: pointer;
+
+  &:hover {
+    color: #8c8686;
+  }
+}
+
+.booking_confirmation__title {
+  i {
+    color: rgb(28, 169, 28);
+    padding-right: .5rem;
+  }
+}
