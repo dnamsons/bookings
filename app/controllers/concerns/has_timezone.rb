@@ -2,12 +2,12 @@ module HasTimezone
   extend ActiveSupport::Concern
 
   included do
-    before_action :set_timezone
+    around_action :with_timezone
   end
 
-  def set_timezone
-    return unless params[:timezone]
+  def with_timezone(&block)
+    return block.call unless params[:timezone]
 
-    Time.zone = params[:timezone]
+    Time.use_zone(params[:timezone], &block)
   end
 end

@@ -1,15 +1,11 @@
 import { useEffect, useState } from 'react'
 import dayjs from 'dayjs'
 import { AvailableTimeSlot, AvailableTimeSlotDateMap } from '../types'
+import { dateToKey } from '../utils'
+import axios from 'axios'
+import toast from 'react-hot-toast'
 
-interface BookingAvailabilitiesDay {
-  date: string
-  available_times: AvailableTimeSlot[]
-}
-
-interface BookingAvailabilitiesResponse {
-  days: BookingAvailabilitiesDay[]
-}
+type BookingAvailabilitiesResponse = AvailableTimeSlot[]
 
 interface DayjsInterval {
   start: dayjs.Dayjs
@@ -117,6 +113,17 @@ const calculateTimeSlots = (
 
 const TIMEZONE = Intl.DateTimeFormat().resolvedOptions().timeZone
 
+const groupAvailableIntervalsByDate = (intervals: AvailableTimeSlot[]) => {
+  return intervals.reduce((acc, interval) => {
+    const dateKey = dateToKey(new Date(interval.start))
+
+    acc[dateKey] ??= []
+    acc[dateKey].push(interval)
+
+    return acc
+  }, {} as AvailableTimeSlotDateMap)
+}
+
 export const useTimeSlots = (
   rangeStartDate: Date,
   requiredTimeSlotDuration: string
@@ -131,7 +138,6 @@ export const useTimeSlots = (
 
   useEffect(() => {
     setLoading(true)
-    console.debug('`rangeStartDate` changed', rangeStartDate)
 
     const startDate = dayjs(rangeStartDate).format('DD-MM-YYYY')
     const endDate = dayjs(rangeStartDate)
@@ -139,23 +145,22 @@ export const useTimeSlots = (
       .add(1, 'day')
       .format('DD-MM-YYYY')
 
-    fetch(
-      `/api/booking_availabilities?start_date=${startDate}&end_date=${endDate}&timezone=${TIMEZONE}`
-    )
-      .then((res) => res.json() as Promise<BookingAvailabilitiesResponse>)
-      .then(({ days }) => {
-        const timeIntervals = Object.fromEntries(
-          days.map((day) => [day.date, day.available_times])
-        )
-
-        setAvailableTimeIntervals(timeIntervals)
-        setLoading(false)
+    axios
+      .get<BookingAvailabilitiesResponse>('/api/availability', {
+        params: { start_date: startDate, end_date: endDate, timezone: TIMEZONE }
       })
+      .then(({ data: intervals }) => {
+        const timeIntervalsByDay = groupAvailableIntervalsByDate(intervals)
+
+        setAvailableTimeIntervals(timeIntervalsByDay)
+      })
+      .catch((_) => {
+        toast.error('System error')
+      })
+      .finally(() => setLoading(false))
   }, [rangeStartDate])
 
   useEffect(() => {
-    console.debug('`availableTimeIntervals` changed', availableTimeIntervals)
-
     const timeSlots = calculateTimeSlots(
       availableTimeIntervals,
       requiredTimeSlotDuration

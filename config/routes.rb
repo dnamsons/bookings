@@ -2,7 +2,7 @@ Rails.application.routes.draw do
   root "booking#index"
 
   namespace :api do
-    resource :booking_availabilities, only: :show
+    resources :availability, only: :index
     resource :bookings, only: :create
   end
 end

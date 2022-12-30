@@ -1,13 +1,13 @@
 require 'rails_helper'
 
-RSpec.describe BookingAvailability do
+RSpec.describe AvailabilityCalculator do
   describe '#days' do
-    subject { described_class.new(start_date: Date.current.to_s, end_date: Date.tomorrow.to_s).days }
+    subject { described_class.new(start_date: Date.current, end_date: Date.tomorrow).days }
 
     it 'returns whole day intervals' do
       expect(subject).to contain_exactly(
-        { date: Date.current, available_times: [{ start: Date.current.to_datetime, end: Date.current.end_of_day }] },
-        { date: Date.tomorrow, available_times: [{ start: Date.tomorrow.to_datetime, end: Date.tomorrow.end_of_day }] }
+        { start: Date.current.to_datetime, end: Date.current.end_of_day },
+        { start: Date.tomorrow.to_datetime, end: Date.tomorrow.end_of_day }
       )
     end
 
@@ -26,13 +26,8 @@ RSpec.describe BookingAvailability do
 
         it 'returns two intervals for one day' do
           expect(subject).to include(
-            {
-              date: Date.current,
-              available_times: [
-                { start: Date.current.beginning_of_day, end: booking_start_time },
-                { start: booking_end_time, end: Date.current.end_of_day }
-              ]
-            }
+            { start: Date.current.beginning_of_day, end: booking_start_time },
+            { start: booking_end_time, end: Date.current.end_of_day }
           )
         end
       end
@@ -43,12 +38,7 @@ RSpec.describe BookingAvailability do
 
         it 'returns an offset interval' do
           expect(subject).to include(
-            {
-              date: Date.current,
-              available_times: [
-                { start: booking_end_time, end: Date.current.end_of_day }
-              ]
-            }
+            { start: booking_end_time, end: Date.current.end_of_day }
           )
         end
       end
@@ -59,8 +49,8 @@ RSpec.describe BookingAvailability do
 
         it 'returns intervals with booking slot time removed' do
           expect(subject).to contain_exactly(
-            { date: Date.current, available_times: [{ start: Date.current.beginning_of_day, end: booking_start_time }] },
-            { date: Date.tomorrow, available_times: [{ start: booking_end_time, end: Date.tomorrow.end_of_day }] }
+            { start: Date.current.beginning_of_day, end: booking_start_time },
+            { start: booking_end_time, end: Date.tomorrow.end_of_day }
           )
         end
       end
