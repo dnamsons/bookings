@@ -18,13 +18,13 @@ module AvailabilityCalculation
     private
 
     def add_booking_to_dates(booking)
-      start_date = booking.start_time.to_date
+      start_date = booking.start_date
       group[start_date] ||= []
       group[start_date] << booking
 
       return unless booking.crosses_midnight?
 
-      end_date = booking.end_time.to_date
+      end_date = booking.end_date
       group[end_date] ||= []
       group[end_date] << booking
     end

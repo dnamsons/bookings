@@ -27,25 +27,17 @@ module AvailabilityCalculation
     def handle_booking_slot(booking, index)
       if index.zero? && !crosses_beginning_of_date?(booking)
         add_date_start_interval(booking)
-      elsif booking.start_time == previous_end_time
-        update_latest_interval(booking)
-      elsif previous_end_time.present?
+      elsif previous_end_time.present? && booking.start_time != previous_end_time
         add_enclosed_interval(booking)
       end
     end
 
     def crosses_beginning_of_date?(booking)
-      booking.starts_on_midnight? || (booking.crosses_midnight? && booking.start_time.to_date != date)
+      booking.starts_on_midnight? || (booking.crosses_midnight? && booking.start_date != date)
     end
 
     def add_date_start_interval(booking)
       @intervals << { start: date.in_time_zone, end: booking.start_time }
-    end
-
-    def update_latest_interval(booking)
-      return if @intervals.blank?
-
-      @intervals.last[:end] = booking.start_time
     end
 
     def add_enclosed_interval(booking)
@@ -57,7 +49,7 @@ module AvailabilityCalculation
 
       return if @previous_end_time.to_date != date
 
-      @intervals << { start: previous_end_time, end: date.in_time_zone.end_of_day }
+      @intervals << { start: previous_end_time, end: date.tomorrow.in_time_zone }
     end
   end
 end

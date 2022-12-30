@@ -1,11 +1,10 @@
 import { useEffect, useState } from 'react'
 import dayjs from 'dayjs'
-import { AvailableTimeSlot, AvailableTimeSlotDateMap } from '../types'
-import { dateToKey } from '../utils'
 import axios from 'axios'
 import toast from 'react-hot-toast'
-
-type BookingAvailabilitiesResponse = AvailableTimeSlot[]
+import useActionCable from './useCable'
+import { TimeInterval, AvailableTimeSlotDateMap } from '../types'
+import { dateToKey, TIMEZONE } from '../utils'
 
 interface DayjsInterval {
   start: dayjs.Dayjs
@@ -16,7 +15,7 @@ const timeSlotsFromInterval = (
   { start, end }: DayjsInterval,
   durationMinutes: number,
   requiredAligmentInMinutes: number
-): AvailableTimeSlot[] => {
+): TimeInterval[] => {
   const slotEnd = start.add(durationMinutes, 'minutes')
 
   let timeSlots = []
@@ -50,9 +49,6 @@ const timeSlotsFromInterval = (
 const isBeginningOfDay = (interval: string) =>
   dayjs(interval).isSame(dayjs(interval).startOf('date'))
 
-const isEndOfDay = (interval: string) =>
-  dayjs(interval).isSame(dayjs(interval).endOf('date'))
-
 const calculateNecessaryAligment = (slotMinutes: number) => {
   const remainder = slotMinutes % 15
 
@@ -81,20 +77,23 @@ const calculateTimeSlots = (
       return [date, []]
     }
 
-    let slotsForDate: AvailableTimeSlot[] = []
+    let slotsForDate: TimeInterval[] = []
 
     intervals.forEach((interval) => {
       let intervalEnd = interval.end
 
-      // If the interval ends at the end of current date(i.e. 23:59:59)
-      // And the first interval of the next date starts at the beginning of the date(i.e. 00:00:00)
+      // If the current interval ends at the beginning of next date(00:00:00)
+      // And the first interval of the next date starts at the beginning of the date(00:00:00)
       // We may be able to book a time slot that crosses midnight
-      if (isEndOfDay(intervalEnd) && !!intervalEntries[index + 1]) {
+      if (isBeginningOfDay(intervalEnd) && !!intervalEntries[index + 1]) {
         const [_date, nextDateIntervals] = intervalEntries[index + 1]
-        const [firstIntervalForNextDate, _] = nextDateIntervals
 
-        if (!!interval && isBeginningOfDay(firstIntervalForNextDate.start)) {
-          intervalEnd = firstIntervalForNextDate.end
+        if (nextDateIntervals.length > 0) {
+          const [firstIntervalForNextDate, _] = nextDateIntervals
+
+          if (!!interval && isBeginningOfDay(firstIntervalForNextDate.start)) {
+            intervalEnd = firstIntervalForNextDate.end
+          }
         }
       }
 
@@ -111,9 +110,7 @@ const calculateTimeSlots = (
   return Object.fromEntries(slotsByDateEntries)
 }
 
-const TIMEZONE = Intl.DateTimeFormat().resolvedOptions().timeZone
-
-const groupAvailableIntervalsByDate = (intervals: AvailableTimeSlot[]) => {
+const groupAvailableIntervalsByDate = (intervals: TimeInterval[]) => {
   return intervals.reduce((acc, interval) => {
     const dateKey = dateToKey(new Date(interval.start))
 
@@ -122,6 +119,12 @@ const groupAvailableIntervalsByDate = (intervals: AvailableTimeSlot[]) => {
 
     return acc
   }, {} as AvailableTimeSlotDateMap)
+}
+
+type BookingAvailabilitiesResponse = TimeInterval[]
+interface ActionCableAvailabilityMessage {
+  relevant_interval: TimeInterval
+  available_intervals: TimeInterval[]
 }
 
 export const useTimeSlots = (
@@ -135,6 +138,39 @@ export const useTimeSlots = (
     useState<AvailableTimeSlotDateMap>({})
 
   const [loading, setLoading] = useState(false)
+
+  useActionCable<ActionCableAvailabilityMessage>(
+    {
+      channel: 'BookingAvailabilitiesChannel',
+      month: dayjs(rangeStartDate).format('MM-YYYY')
+    },
+    (data) => {
+      const { relevant_interval, available_intervals } = data
+
+      let intervalDateKeys = Object.entries(relevant_interval).map(
+        ([_, time]) => dateToKey(new Date(time))
+      )
+      intervalDateKeys = [...new Set(intervalDateKeys)]
+
+      const timeIntervalsByDate =
+        groupAvailableIntervalsByDate(available_intervals)
+
+      intervalDateKeys.forEach((dateKey) => {
+        timeIntervalsByDate[dateKey] ??= []
+      })
+
+      const relevantTimeIntervals = Object.fromEntries(
+        Object.entries(timeIntervalsByDate).filter(([dateKey, _]) =>
+          intervalDateKeys.includes(dateKey)
+        )
+      )
+
+      setAvailableTimeIntervals((previousIntervals) => ({
+        ...previousIntervals,
+        ...relevantTimeIntervals
+      }))
+    }
+  )
 
   useEffect(() => {
     setLoading(true)

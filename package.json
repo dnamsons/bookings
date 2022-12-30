@@ -3,6 +3,7 @@
   "private": "true",
   "dependencies": {
     "@popperjs/core": "^2.11.6",
+    "@rails/actioncable": "^7.0.4",
     "axios": "^1.2.1",
     "bootstrap": "^5.2.3",
     "bootstrap-icons": "^1.10.3",
@@ -20,6 +21,7 @@
   },
   "devDependencies": {
     "@types/bootstrap": "^5.2.6",
+    "@types/rails__actioncable": "^6.1.6",
     "@types/react": "^18.0.26",
     "@types/react-calendar": "^3.9.0",
     "@types/react-dom": "^18.0.10"

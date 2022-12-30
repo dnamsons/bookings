@@ -7,26 +7,30 @@ class Booking < ApplicationRecord
     where(start_time: datetime_range).or(where(end_time: datetime_range))
   end
 
-  def self.overlaps_exclusively_with(column_name, range)
-    where("#{column_name} > :start AND #{column_name} < :end", start: range.first, end: range.last)
-  end
-
-  # Finds bookings that overlap with a booking.
+  # Finds all bookings that overlap with a booking.
   # This is an exclusive check - the start and end of the range is ignored
   # We do this because it is perfectly okay for a one booking to end on the midnight
   # And for the next booking to start on the midnight
   def self.overlapping(booking)
-    booking_range = booking.start_time..booking.end_time
+    where('start_time <= :start AND end_time > :start', start: booking.start_time).or(
+      where('start_time < :end AND end_time >= :end', end: booking.end_time)
+    )
+  end
 
-    overlaps_exclusively_with(:start_time, booking_range).or(overlaps_exclusively_with(:end_time, booking_range))
+  def start_date
+    start_time.to_date
+  end
+
+  def end_date
+    end_time.to_date
   end
 
   def starts_on_midnight?
-    start_time.in_time_zone.strftime("%H:%M:%S") == "00:00:00"
+    start_time.in_time_zone.strftime('%H:%M:%S') == '00:00:00'
   end
 
   def crosses_midnight?
-    start_time.to_date.tomorrow == end_time.to_date
+    start_date.tomorrow == end_date
   end
 
   def booking_times_cannot_overlap

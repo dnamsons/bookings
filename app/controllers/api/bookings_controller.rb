@@ -4,11 +4,12 @@ module API
 
     def create
       booking = Booking.new(booking_params)
+      reserver = BookingReserver.new(booking)
 
-      if booking.save
+      if reserver.reserve
         render json: { id: booking.id }
       else
-        render json: { errors: booking.errors.full_messages }, status: :unprocessable_entity
+        render json: { errors: reserver.errors.full_messages }, status: :unprocessable_entity
       end
     end
 

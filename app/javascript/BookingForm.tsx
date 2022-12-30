@@ -1,13 +1,13 @@
 import React, { useMemo, useState } from 'react'
 import { useTimeSlots } from './hooks/useTimeSlots'
-import { AvailableTimeSlot } from './types'
+import { TimeInterval } from './types'
 import TimeSlotDurationCard from './components/TimeSlotDurationCard'
 import TimeSlotsCard from './components/TimeSlotsCard'
 import Calendar from './components/Calendar'
 import { dateToKey } from './utils'
 
 interface BookingFormProps {
-  onConfirmReservation: (timeSlot: AvailableTimeSlot) => void
+  onConfirmReservation: (timeSlot: TimeInterval) => void
 }
 
 const BookingForm: React.FC<BookingFormProps> = ({ onConfirmReservation }) => {

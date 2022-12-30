@@ -1,10 +1,9 @@
 import React, { useState } from 'react'
-import { AvailableTimeSlot } from './hooks/useTimeSlots'
 import axios, { AxiosError, isAxiosError } from 'axios'
 import toast, { Toaster } from 'react-hot-toast'
 import BookingForm from './BookingForm'
-
-const TIMEZONE = Intl.DateTimeFormat().resolvedOptions().timeZone
+import { TimeInterval } from './types'
+import { TIMEZONE } from './utils'
 
 const BookingConfirmation: React.FC<{ bookingId: string }> = ({
   bookingId
@@ -24,7 +23,7 @@ type CreateBookingErrorResponse = { errors: string[] }
 const BookingPage: React.FC = () => {
   const [bookingId, setBookingId] = useState<string>()
 
-  const onConfirmReservation = (timeSlot: AvailableTimeSlot) => {
+  const onConfirmReservation = (timeSlot: TimeInterval) => {
     axios
       .post<CreateBookingResponse>('/api/bookings', {
         start_time: timeSlot.start,

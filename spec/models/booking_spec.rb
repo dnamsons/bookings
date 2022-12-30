@@ -37,8 +37,32 @@ RSpec.describe Booking do
 
     it { is_expected.to eq(true) }
 
+    context 'booking ends at the start of another booking' do
+      let(:booking) { build :booking, start_time: midnight - 1.hour, end_time: midnight }
+
+      it { is_expected.to eq(true) }
+    end
+
+    context 'booking starts at the end of another booking' do
+      let(:booking) { build :booking, start_time: midnight + 1.hour, end_time: midnight + 2.hours }
+
+      it { is_expected.to eq(true) }
+    end
+
     context 'with the booking starting yesterday and ending today' do
       let(:booking) { build :booking, start_time: midnight - 1.hour, end_time: midnight + 30.minutes }
+
+      it { is_expected.to eq(false) }
+    end
+
+    context 'with the booking starting within the interval of another booking' do
+      let(:booking) { build :booking, start_time: midnight + 30.minutes, end_time: midnight + 2.hours }
+
+      it { is_expected.to eq(false) }
+    end
+
+    context 'with the booking having the same start and end time as another booking' do
+      let(:booking) { build :booking, start_time: midnight, end_time: midnight + 1.hour }
 
       it { is_expected.to eq(false) }
     end
@@ -46,7 +70,7 @@ RSpec.describe Booking do
     context 'with the booking starting on the midnight' do
       let(:booking) { build :booking, start_time: midnight, end_time: midnight + 30.minutes }
 
-      it { is_expected.to eq(true) }
+      it { is_expected.to eq(false) }
     end
   end
 

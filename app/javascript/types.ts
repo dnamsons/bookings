@@ -1,6 +1,6 @@
-export interface AvailableTimeSlot {
+export interface TimeInterval {
   start: string
   end: string
 }
 
-export type AvailableTimeSlotDateMap = Record<string, AvailableTimeSlot[]>
+export type AvailableTimeSlotDateMap = Record<string, TimeInterval[]>

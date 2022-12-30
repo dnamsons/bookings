@@ -6,7 +6,7 @@ class AvailabilityCalculator
     @booked_intervals_grouped_by_date = AvailabilityCalculation::BookedIntervalGrouper.new(date_range).call
   end
 
-  def days
+  def available_intervals
     date_range.flat_map { |date| available_intervals_in(date) }
   end
 

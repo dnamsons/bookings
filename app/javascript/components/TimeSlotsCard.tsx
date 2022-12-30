@@ -1,11 +1,11 @@
 import dayjs from 'dayjs'
 import React from 'react'
-import { AvailableTimeSlot } from '../types'
+import { TimeInterval } from '../types'
 
 const TimeSlotsCard: React.FC<{
   date: Date
-  timeSlots: AvailableTimeSlot[]
-  onConfirmReservation: (timeSlot: AvailableTimeSlot) => void
+  timeSlots: TimeInterval[]
+  onConfirmReservation: (timeSlot: TimeInterval) => void
 }> = ({ date, timeSlots, onConfirmReservation }) => {
   return (
     <div className='time_slots'>

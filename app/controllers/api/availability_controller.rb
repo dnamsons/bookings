@@ -1,12 +1,12 @@
 module API
   class AvailabilityController < ::ApplicationController
-    include ::HasTimezone
+    include HasTimezone
 
     def index
       start_date = Date.parse(params[:start_date])
       end_date = Date.parse(params[:end_date])
 
-      availabilities = AvailabilityCalculator.new(start_date: start_date, end_date: end_date).days
+      availabilities = AvailabilityCalculator.new(start_date: start_date, end_date: end_date).available_intervals
 
       render json: availabilities
     end
